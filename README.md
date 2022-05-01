@@ -3,7 +3,7 @@
 
 ### Containerized by Jay Land (KF7ITF), v.jay.land@gmail.com
 ### Note there has been no code changes from [DanRuderman/EmComMap](https://github.com/DanRuderman/EmComMap). This is just a containerization with updated Apache2, Couchdb, and the Tileserver.
-<img src="Resources/map_image.png" width="450">
+<img src="map_image.png" width="450">
 
 ### Home page
 [EmComMap](http://emcommap.org)
