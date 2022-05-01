@@ -1,7 +1,15 @@
 # EmComMap
 ## Live multi-user annotatble map for emergency communications
 
+### Containerized by Jay Land (KF7ITF), v.jay.land@gmail.com
+### Note there has been no code changes from [DanRuderman/EmComMap](https://github.com/DanRuderman/EmComMap). This is just a containerization with updated Apache2, Couchdb, and the Tileserver.
 <img src="Resources/map_image.png" width="450">
+
+### Home page
+[EmComMap](http://emcommap.org)
+
+### Demo
+[Demo server](http://app.emcommap.org/EmComMap/html/index.html)
 
 ### Features
 * Interactive map with symbols for operators, locations, and incidents
@@ -17,29 +25,65 @@
 * Persistent storage on server database, with replication
 
 ### Deployment
+* Docker and Docker-compose must be installed for this version to work.
+* For the initial run your computer must have access to the internet. After that no internet connection is needed to build the containers.
 * Can be encrypted (https) or unencrypted (http, suitable for Amateur Radio)
 * MESH networking
 * Internet / intranet
-* Relies on three server platforms, each of which can be deployed redundantly to avoid single points of failure:
-  1. CouchDB
-  2. Map tile server
-  3. Web server (e.g. Apache2)
+* Relies on three server platforms, deployed in a container stack:
+  1. CouchDB (DB)
+  2. Map tile server (Map)
+  3. Apache2 (Web)
+* The following steps will have the stack up and running.
+  1. Unzip the EmComMap.zip into a location accessable to your user.
+  2. Open a command promot and navigate the the EmComMap folder location unziped in step 1.
+  3. Enter the command 'docker-compose up -d'
+* Access the couchdb management web page:
+  1. `http://localhosts:5984/_utils`
+  2. User name is: `admin`
+  3. Passworkd is: `password`
+* Access the tileserver management web page:
+  1. `http://localhosts:8888`
+* Access the EmComMap login web page:
+  1. `http://localhosts:8080`
+  2. Usernames and passwords:
+    a. Admin user:`admin` Password: `password`
+    b. EmComMap user: `user1` Password: `password`
+* Important folder locations and descriptions:
+  1. Apache2
+    a. `.\EmComMap\web\data` - EmComMap config and source files
+    b. `.\EmComMap\web\config` - Apache2 config files httpd.conf.
+  2. Couchdb
+    a. `.\EmComMap\couchdb\data` - Database files
+    b. `.\EmComMap\couchdb\data\etc` - Couchdb config files
+  3. Tileserver-gl
+    a. `.\EmComMap\tileserver-gl\data` - Map tile files
 
 ### User manual
 * See [EmComMap User Guide](html/Documentation/EmComMap_user_guide.pdf)
 
-### Installation (Ubuntu Linux)
-
-This installation method has been tested on Ubuntu 16.04.5 (xenial). The process is not particularly pleasant, and if others have suggestions on how to improve it, please contact me.
 
 #### CouchDB database (http://couchdb.apache.org/)
 
-Install CouchDB (v1.6.0 tested)
+Docker-compose was use to create pull the official image for Docker Hub. The below is the section used to setup the image.
 
-`$ sudo apt install couchdb`
+```
+db:
+    image: couchdb
+    ports:
+      - "5984:5984" #Maps the couchdb web connection to http://localhost:5984 to get to the couchdb management interface you would go to http://localhost:5984/_utils
+    volumes:
+      - .\couchdb\data:/opt/couchdb/data #Makes a persistant mount for the database files
+      - .\couchdb\data\etc:/opt/couchdb/etc #Makes a persistant mount for the couchdb files
+    restart: always
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password
+```
 
-Edit the file /etc/couchdb/local.ini, for example using  
-`$ sudo vi /etc/couchdb/local.ini`
+#### The next section is just for reference as the changes have been made to the files in the zip.
+Edit the file `.\EmComMap\couchdb\data\etc\local.ini`, for example using  
+
 
 1. Insert the line:
 ```enable_cors = true```
@@ -47,36 +91,35 @@ beneath the line that reads
 ```[httpd]```
 
 1. Add the following lines to the end of the file:
-```[cors]
-origins = *
-credentials = true
-methods = GET, PUT, POST, HEAD, DELETE
-headers = accept, authorization, content-type, origin, referer, x-csrf-token
 ```
-Restart CouchDB:  
-`$ sudo /etc/init.d/couchdb restart`
+[cors]
+	origins = *
+	credentials = true
+	methods = GET, PUT, POST, HEAD, DELETE
+	headers = accept, authorization, content-type, origin, referer, x-csrf-token
+```
 
-Note: With newer versions of CouchDB you may need to insated enable CORS through the CouchDB web configuration console, setting origins to "*".
+### Adding Users
 
+#### You will however, have to acces the configuration tool to add users to the system using the admin user (admin:password). One user is currently setup (user1:password).
 
-Set up databases using web configuration tool. Direct your browser to
-`http://<host>:5984/_utils/`, where `<host>` is the hostname or IP address
-  of the CouchDB server
+Set up databases using web configuration tool. Direct your browser to the couchdb container/service must be running to set this up.
+`http://localhosts:5984/_utils/`, 
 
 1. Set an admin password. A link in the lower right-hand corner of the web page should give you the option of setting an administrator password.
 
-1. Verify the installation. There is a link to do this on the right hand side of the page, below *Diagnostics*.
+1. Verify the installation. There is a Verify link (Check mark Icon) to do this on the left hand side of the page.
 
 1. Create databases for EmComMap.
-   * Click *Overview*, which is below *Tools* on the right hand side
-   * On the upper left, click *Create Database*
+   * Click *Databases*, which is on the left hand side
+   * On the upper right, click *Create Database*
    * Create a database called *emcommap*
    * Using the same method, create a second database called *emcommap_attachments*
   
 To create users:
-1. Click *Overview*, which is below *Tools* on the right hand side
-1. On the left, you will see a link to the database *_users*. Click on it.
-1. Click *New Document* on the upper left, which will bring up a document containing one line
+1. Click *Databases*, which is on the left hand side
+1. In the main pane, you will see a link to the database *_users*. Click on it.
+1. Click *New Document* on the upper right, which will bring up a document containing one line
 1. Click the *Source* tab on the upper right
 1. Double-click on the document to get into edit mode, and replace the document's text with the following:
 
@@ -89,70 +132,79 @@ To create users:
    "password": "plaintext_password"  
    }
    ```
+   
 1. In the text, replace *username* with the desired user name, *name_of_user* with the user's name, and *plaintext_password* with the user's password (it will be stored as a hash, not in plain text).
 1. Click *Save Document* in the upper left corner
 
 You must give each user that you create permission to access the EmComMap databases, as follows:
-1. Go to *Overview* (below the *Tools* menu on the right).
+1. Go to *Databases* (menu on the left).
 1. Click on the database *emcommap*
-1. Click on *Security* at the top
-1. You will add to the *Members* area of the dialog which pops up. In the *Names* field you will fill in all user names using the following format: `["user1","user2","user3"]`
-1. Click *Update* to complete.
+1. Click on *Permission* in the main pane.
+1. You will add to the *Members* area of the dialog. In the *Names* field you will fill in each user.
+1. Click *Add User* to complete.
 1. Repeat these same steps for the database *emcommap_attachments*
-
-Note: It has been reported that you may need to add users one at a time to get this to work.
 
 #### Apache2 web server (https://httpd.apache.org/)
 
 Note that while Apache2 is used in this example, other web servers should perform just as well.
 
-Install the apache2 web server:  
-`$ sudo apt install apache2`
+Docker-compose was use to create pull the official image for Docker Hub. The below is the section used to setup the image.
 
-Download EmComMap  
-`$ cd /var/www/html`  
-`$ sudo git clone https://github.com/DanRuderman/EmComMap.git`
+```
+web:
+    image: httpd:2.4
+    ports:
+      - "8080:80" #Maps the EmComMap web page to http://localhost:8080
+    volumes:
+      - .\web\data:/usr/local/apache2/htdocs #Makes a persistant mount for the EmComMap files
+      - .\web\config:/usr/local/apache2/conf #Makes a persistant mount for the Apache2 config files httpd.conf. The addition is to further point to the html folder where the EmComMap files are.
+    depends_on: #Ensures that the Apache2 server will not come up until the couchdb and tile servers do.
+      - db
+      - map
+    links: #Allows them to see each other on the stack's network.
+      - "db"
+      - "map"
+    restart: always
+```
 
-Restart the apache2 web server  
-`$ sudo apache2ctl restart`
+#### The EmComMap source files are located in the .\EmComMap\web\data folder. The Apache2 config files (httpd.conf) is located in the .\EmComMap\web\config folder.
 
-#### Map tile server (https://github.com/klokantech/tileserver-gl)
+#### Map tile server (https://github.com/maptiler/tileserver-gl)
 
-Create a directory for the tile server data:  
-`$ sudo mkdir /usr/local/tileserver-gl`  
-`$ cd /usr/local/tileserver-gl`
+Docker-compose was use to pull the image for Docker Hub. The origional called for image had a cruppted manifest file and could not be pulled down. The below is the section used to setup the image.
 
-Download map tiles from [OpenMapTiles](https://openmaptiles.com/downloads/planet/). You can download the entire planet or just a region of interest by navigating to that location. For this exmple we will download the Los Angeles region. Whichever geographic area you choose, you will want to download the *OpenSteetMap* tiles. Note you will need to create an account to download tiles. OpenMapTiles will provide you a *wget* command to download. Download into the directory you created above (e.g. */usr/local/tileserver-gl*).
+```
+map:
+    image: maptiler/tileserver-gl
+    ports:
+      - "8888:80" #Maps the tileserver-gl web management to http://localhost:8888
+    volumes:
+      - .\tileserver-gl\data:/data #Makes a presistant mount for the map tiles
+    restart: always 
+```
 
-`$ sudo wget -c https://openmaptiles.com/download/<TOKEN>/osm-2017-07-03-v3.6.1-california_los-angeles.mbtiles?usage=personal`
-
-Unfortunately, the filename ends up with an odd suffix, which can be fixed using *mv*:  
-`$ sudo mv osm-2017-07-03-v3.6.1-california_los-angeles.mbtiles\?usage\=personal osm-2017-07-03-v3.6.1-california_los-angeles.mbtiles`
-
-Install docker:  
-`$ sudo apt install docker.io`
-
-Run the tile server (must be in the directory containing the tiles, e.g. */usr/local/tileserver-gl*):  
-`$ sudo docker run --rm -it -v $(pwd):/data -p 8080:80 klokantech/tileserver-gl`
-
-The first time this is run, the docker container for *tileserver-gl* will be downloaded and extracted. This will take significant time (perhaps 30 minutes). When initialization has complete and the tile server is active, it will print: *Startup complete*. At this point it will be serving tiles over port 8080 using the unencrypted http protocol.
+Download map tiles from [OpenMapTiles](https://openmaptiles.com/downloads/planet/). You can download the entire planet or just a region of interest by navigating to that location. For this exmple we will download the Los Angeles region. Whichever geographic area you choose, you will want to download the *OpenSteetMap* tiles. Note you will need to create an account to download tiles. OpenMapTiles will provide you a *wget* command to download or a direct download. The tile files should be placed in the `.\EmComMap\tileserver-gl\data folder`.
 
 To test that the tile server is functional, enter the following URL into your browser:  
-`http://<host>:8080/styles/klokantech-basic/0/0/0.png`(substituting your host name for `<host>`). It should bring up a single tile of the world.
 
-It is useful to place the above docker command into a shell script, and possibly have it run automatically on reboot via the */etc/init.d* mechanism. Documentation on *tileserver-gl* can be found [here](https://tileserver.readthedocs.io/en/latest/).
+```http://localhost:8888``` It should bring up a single tile of the world.
 
-### Configuration
+
+## Configuration
 
 #### EmComMap configuration
 
-To configure your installation, edit the file */var/www/html/EmComMap/html/config.js*. Toward the top of the file you will see these lines:
+NOTE: If you are using the EmComMap.zip all of the following is configured with the execption of the e-mail address.
+
+To configure your installation, edit the file `.\EmComMap\web\data\html\config.js`. The folder is set up as a presistant mount for the web container and mounted to the correct location in the container (See docker-config.yml for services>web>volumes). Toward the top of the file you will see these lines:
 
 ```
-const RUN_LOCATION = "local";
+//const RUN_LOCATION = "local"; 
+const RUN_LOCATION = "my-install";
 
 if(RUN_LOCATION == "my-install") {
-    var TILE_SERVER = 'http://<host>:8080/styles/klokantech-basic/{z}/{x}/{y}.png';
+    //var TILE_SERVER = 'http://<host>:8080/styles/klokantech-basic/{z}/{x}/{y}.png'; // Original but due to the tileserver upgrade the line below is needed. 
+    var TILE_SERVER = 'http://localhost:8888/styles/basic-preview/{z}/{x}/{y}.png'; // Changed due to having to use a different tileserver-gl than above. This line was found by going to the tile server and clicking on the xyz link and coping the infomation here.
     var TILE_SERVER_OPTS = {
 	maxZoom: 18,
 	attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
@@ -194,4 +246,5 @@ Amateur radio based applications (e.g. supporting MESH networking) may not encry
 * [smart-time-ago](https://github.com/pragmaticly/smart-time-ago)
 * [xlsx-populate](https://github.com/dtjohnson/xlsx-populate/tree/master/browser)
 
-### Dan Ruderman (K6OAT) emcommap@gmail.com
+### Dan Ruderman (K6OAT) emcommap@gmail.com - EmComMap question
+### Jay Land (KF7ITF) v.jay.land@gmail.com - Container question
