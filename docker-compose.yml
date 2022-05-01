@@ -1,0 +1,47 @@
+version: '3.8'
+
+networks:
+  em-frontend:
+
+services:
+
+  web:
+    image: httpd:2.4
+    networks:
+      - em-frontend
+    ports:
+      - "8080:80" #Maps the EmComMap web page to http://localhost:8080
+    volumes:
+      - ./web/data:/usr/local/apache2/htdocs #Makes a persistant mount for the EmComMap files
+      - ./web/config:/usr/local/apache2/conf #Makes a persistant mount for the Apache2 config files httpd.conf. The addition is to further point to the html folder where the EmComMap files are.
+    depends_on: #Ensures that the Apache2 server will not come up until the couchdb and tile servers do.
+      - db
+      - map
+    links: #Allows them to see each other on the stack's network.
+      - "db"
+      - "map"
+    restart: always
+  
+  db:
+    image: couchdb
+    networks:
+      - em-frontend
+    ports:
+      - "5984:5984" #Maps the couchdb web connection to http://localhost:5984 to get to the couchdb management interface you would go to http://localhost:5984/_utils
+    volumes:
+      - ./couchdb/data:/opt/couchdb/data  #Makes a persistant mount for the database files
+      - ./couchdb/data/etc:/opt/couchdb/etc #Makes a persistant mount for the couchdb files
+    restart: always
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password
+      
+  map:
+    image: maptiler/tileserver-gl
+    networks:
+      - em-frontend
+    ports:
+      - "8888:80" #Maps the tileserver-gl web management to http://localhost:8888
+    volumes:
+      - ./tileserver-gl/data:/data  #Makes a presistant mount for the map tiles
+    restart: always 
