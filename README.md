@@ -36,6 +36,7 @@
   3. Apache2 (Web)
 * The following steps will have the stack up and running.
 ##### 	***Note due to size restriction the maptile data was removed from the `.\EmComMap\tileserver-gl\data` folder. You will need to follow the instruction under Download Map Tiles to get your offline maps.
+####	Also note that you can access the EmComMap and the management interfaces from another computer by using the IP address of the hosted system in place of `localhost`.
   1. Unzip the EmComMap.zip into a location accessable to your user.
   2. Open a command promot and navigate the the EmComMap folder location unziped in step 1.
   3. Enter the command 'docker-compose up -d'
@@ -52,13 +53,13 @@
     b. EmComMap user: `user1` Password: `password`
 * Important folder locations and descriptions:
   1. Apache2
-    a. `.\EmComMap\web\data` - EmComMap config and source files
-    b. `.\EmComMap\web\config` - Apache2 config files httpd.conf.
+    a. `./EmComMap/web/data` - EmComMap config and source files
+    b. `./EmComMap/web/config` - Apache2 config files httpd.conf.
   2. Couchdb
-    a. `.\EmComMap\couchdb\data` - Database files
-    b. `.\EmComMap\couchdb\data\etc` - Couchdb config files
+    a. `./EmComMap/couchdb/data` - Database files
+    b. `./EmComMap/couchdb/data/etc` - Couchdb config files
   3. Tileserver-gl
-    a. `.\EmComMap\tileserver-gl\data` - Map tile files
+    a. `./EmComMap/tileserver-gl\data` - Map tile files
 
 ### User manual
 * See [EmComMap User Guide](html/Documentation/EmComMap_user_guide.pdf)
@@ -74,8 +75,8 @@ db:
     ports:
       - "5984:5984" #Maps the couchdb web connection to http://localhost:5984 to get to the couchdb management interface you would go to http://localhost:5984/_utils
     volumes:
-      - .\couchdb\data:/opt/couchdb/data #Makes a persistant mount for the database files
-      - .\couchdb\data\etc:/opt/couchdb/etc #Makes a persistant mount for the couchdb files
+      - ./couchdb/data:/opt/couchdb/data #Makes a persistant mount for the database files
+      - ./couchdb/data/etc:/opt/couchdb/etc #Makes a persistant mount for the couchdb files
     restart: always
     environment:
       - COUCHDB_USER=admin
@@ -157,8 +158,8 @@ web:
     ports:
       - "8080:80" #Maps the EmComMap web page to http://localhost:8080
     volumes:
-      - .\web\data:/usr/local/apache2/htdocs #Makes a persistant mount for the EmComMap files
-      - .\web\config:/usr/local/apache2/conf #Makes a persistant mount for the Apache2 config files httpd.conf. The addition is to further point to the html folder where the EmComMap files are.
+      - ./web/data:/usr/local/apache2/htdocs #Makes a persistant mount for the EmComMap files
+      - ./web/config:/usr/local/apache2/conf #Makes a persistant mount for the Apache2 config files httpd.conf. The addition is to further point to the html folder where the EmComMap files are.
     depends_on: #Ensures that the Apache2 server will not come up until the couchdb and tile servers do.
       - db
       - map
@@ -180,7 +181,7 @@ map:
     ports:
       - "8888:80" #Maps the tileserver-gl web management to http://localhost:8888
     volumes:
-      - .\tileserver-gl\data:/data #Makes a presistant mount for the map tiles
+      - ./tileserver-gl/data:/data #Makes a presistant mount for the map tiles
     restart: always 
 ```
 
