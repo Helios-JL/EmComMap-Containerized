@@ -35,7 +35,7 @@
   2. Map tile server (Map)
   3. Apache2 (Web)
 * The following steps will have the stack up and running.
-##### 	***Note due to size restriction the maptile data was removed from the `.\EmComMap\tileserver-gl\data` folder. You will need to follow the instruction under Download Map Tiles to get your offline maps.
+##### 	***Note due to size restriction the maptile data was removed from the `./EmComMap/tileserver-gl/data` folder. You will need to follow the instruction under Download Map Tiles to get your offline maps.
 ####	Also note that you can access the EmComMap and the management interfaces from another computer by using the IP address of the hosted system in place of `localhost`.
   1. Unzip the EmComMap.zip into a location accessable to your user.
   2. Open a command promot and navigate the the EmComMap folder location unziped in step 1.
