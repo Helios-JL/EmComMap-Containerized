@@ -35,6 +35,7 @@
   2. Map tile server (Map)
   3. Apache2 (Web)
 * The following steps will have the stack up and running.
+##### 	***Note due to size restriction the maptile data was removed from the `.\EmComMap\tileserver-gl\data` folder. You will need to follow the instruction under Download Map Tiles to get your offline maps.
   1. Unzip the EmComMap.zip into a location accessable to your user.
   2. Open a command promot and navigate the the EmComMap folder location unziped in step 1.
   3. Enter the command 'docker-compose up -d'
@@ -183,6 +184,7 @@ map:
     restart: always 
 ```
 
+#### Download Map Tiles
 Download map tiles from [OpenMapTiles](https://openmaptiles.com/downloads/planet/). You can download the entire planet or just a region of interest by navigating to that location. For this exmple we will download the Los Angeles region. Whichever geographic area you choose, you will want to download the *OpenSteetMap* tiles. Note you will need to create an account to download tiles. OpenMapTiles will provide you a *wget* command to download or a direct download. The tile files should be placed in the `.\EmComMap\tileserver-gl\data folder`.
 
 To test that the tile server is functional, enter the following URL into your browser:  
@@ -246,5 +248,4 @@ Amateur radio based applications (e.g. supporting MESH networking) may not encry
 * [smart-time-ago](https://github.com/pragmaticly/smart-time-ago)
 * [xlsx-populate](https://github.com/dtjohnson/xlsx-populate/tree/master/browser)
 
-### Dan Ruderman (K6OAT) emcommap@gmail.com - EmComMap question
-### Jay Land (KF7ITF) v.jay.land@gmail.com - Container question
+### Dan Ruderman (K6OAT) emcommap@gmail.com
